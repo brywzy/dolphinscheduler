@@ -43,18 +43,14 @@ public class SqlSplitter {
             return Collections.singletonList(sql);
         }
 
-        String[] lines = sql.split(LINE_SEPARATOR);
+        String[] lines = sql.split(segmentSeparator);
         List<String> segments = new ArrayList<>();
         StringBuilder stmt = new StringBuilder();
         for (String line : lines) {
             if (line.trim().isEmpty() || line.startsWith("--")) {
                 continue;
             }
-            stmt.append(LINE_SEPARATOR).append(line);
-            if (line.trim().endsWith(segmentSeparator)) {
-                segments.add(stmt.toString());
-                stmt.setLength(0);
-            }
+            stmt.append(line);
         }
         if (stmt.length() > 0) {
             segments.add(stmt.toString());
