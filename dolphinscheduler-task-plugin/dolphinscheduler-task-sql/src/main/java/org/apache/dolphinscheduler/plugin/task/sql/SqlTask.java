@@ -157,6 +157,10 @@ public class SqlTask extends AbstractTask {
 
             List<String> createFuncs = createFuncs(sqlTaskExecutionContext.getUdfFuncParametersList(), logger);
 
+            mainStatementSqlBinds.stream().forEach(x -> {
+                logger.debug("s");
+            });
+
             // execute sql task
             executeFuncAndSql(mainStatementSqlBinds, preStatementSqlBinds, postStatementSqlBinds, createFuncs);
 
@@ -308,6 +312,7 @@ public class SqlTask extends AbstractTask {
     private String executeUpdate(Connection connection, List<SqlBinds> statementsBinds, String handlerType) throws Exception {
         int result = 0;
         for (SqlBinds sqlBind : statementsBinds) {
+            logger.info("--multi sql debug :"+ sqlBind.getSql() + "\t param : "+sqlBind.getParamsMap());
             try (PreparedStatement statement = prepareStatementAndBind(connection, sqlBind)) {
                 result = statement.executeUpdate();
                 logger.info("{} statement execute update result: {}, for sql: {}", handlerType, result, sqlBind.getSql());
