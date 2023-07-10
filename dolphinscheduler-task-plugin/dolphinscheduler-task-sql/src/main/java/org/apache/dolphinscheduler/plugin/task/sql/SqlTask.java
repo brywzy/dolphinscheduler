@@ -133,10 +133,10 @@ public class SqlTask extends AbstractTask {
                 sqlParameters.getLimit());
         try {
 
+            DbType dbType = DbType.valueOf(sqlParameters.getType());
             // get datasource
             baseConnectionParam = (BaseConnectionParam) DataSourceUtils.buildConnectionParams(
-                    DbType.valueOf(sqlParameters.getType()),
-                    sqlTaskExecutionContext.getConnectionParams());
+                    dbType, sqlTaskExecutionContext.getConnectionParams());
 
             // ready to execute SQL and parameter entity Map
             List<SqlBinds> mainStatementSqlBinds = SqlSplitter.split(sqlParameters.getSql(), sqlParameters.getSegmentSeparator())
@@ -144,8 +144,10 @@ public class SqlTask extends AbstractTask {
                     .map(this::getSqlAndSqlParamsMap)
                     .collect(Collectors.toList());
 
-            List<SqlBinds> preStatementSqlBinds = Optional.ofNullable(sqlParameters.getPreStatements())
-                    .orElse(new ArrayList<>())
+            List<String> preSql = Optional.ofNullable(sqlParameters.getPreStatements())
+                    .orElse(new ArrayList<>());
+            addPreSql(dbType , preSql);
+            List<SqlBinds> preStatementSqlBinds = preSql
                     .stream()
                     .map(this::getSqlAndSqlParamsMap)
                     .collect(Collectors.toList());
@@ -173,6 +175,25 @@ public class SqlTask extends AbstractTask {
         }
     }
 
+    private void addPreSql(DbType dbType,List<String> preStatements ){
+        if (dbType.isHive()){
+            if (preStatements.isEmpty()){
+                preStatements.add("set mapreduce.job.queuename=etl");
+                preStatements.add("set compression_codec=snappy");
+            }else{
+                boolean hasQueue = false;
+                for (String preSql : preStatements) {
+                    if(preSql.contains("mapreduce.job.queuename")){
+                        hasQueue = true;
+                    }
+                }
+                if (!hasQueue){
+                    preStatements.add("set mapreduce.job.queuename=etl");
+                }
+            }
+        }
+    }
+
     @Override
     public void cancel() throws TaskException {
 
@@ -194,27 +215,30 @@ public class SqlTask extends AbstractTask {
         try {
 
             DbType dbType = DbType.valueOf(sqlParameters.getType());
+            if (dbType.isHive() && preStatementsBinds.isEmpty()){
+                preStatementsBinds.add(new SqlBinds("set mapreduce.job.queuename=etl",null));
+            }
             logger.info("db type:"+dbType);
             logger.info("sql type:"+dbType.getCode() +"\t descriptor:"+dbType.getDescp());
             logger.info("baseConnectionParam:"+baseConnectionParam);
             logger.info("baseConnectionParam user:"+baseConnectionParam.getUser()+"\t pwd:"+baseConnectionParam.getPassword()+"\t url:"+baseConnectionParam.getJdbcUrl());
 
             for (SqlBinds sqlBinds : mainStatementsBinds){
-                logger.info("mainStatementsBinds:"+sqlBinds);
+                logger.info("mainStatementsBinds:"+sqlBinds.getSql());
             }
             for (SqlBinds sqlBinds : preStatementsBinds){
-                logger.info("preStatementsBinds:"+sqlBinds);
+                logger.info("preStatementsBinds:"+sqlBinds.getSql());
             }
             for (SqlBinds sqlBinds : postStatementsBinds){
-                logger.info("postStatementsBinds:"+sqlBinds);
-            }
-            for (String func : createFuncs){
-                logger.info("createFuncs:"+func);
+                logger.info("postStatementsBinds:"+sqlBinds.getSql());
             }
             // create connection
             connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
             // create temp function
             if (CollectionUtils.isNotEmpty(createFuncs)) {
+                for (String func : createFuncs){
+                    logger.info("createFuncs:"+func);
+                }
                 createTempFunction(connection, createFuncs);
             }
 
