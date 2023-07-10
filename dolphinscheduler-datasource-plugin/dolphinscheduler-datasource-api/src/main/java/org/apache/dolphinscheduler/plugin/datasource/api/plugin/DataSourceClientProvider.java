@@ -81,7 +81,6 @@ public class DataSourceClientProvider {
             }else{
                 logger.info("DataSourceClientCache key:{},value:{}", key,dataSourceClient.getConnection());
             }
-
         }
         DataSourceClient dataSourceClient = uniqueId2dataSourceClientCache.get(datasourceUniqueId, () -> {
             Map<String, DataSourceChannel> dataSourceChannelMap = dataSourcePluginManager.getDataSourceChannelMap();
@@ -89,7 +88,9 @@ public class DataSourceClientProvider {
             if (null == dataSourceChannel) {
                 throw new RuntimeException(String.format("datasource plugin '%s' is not found", dbType.getDescp()));
             }
-            return dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
+            DataSourceClient createDataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
+            logger.info("DataSourceClientCache create new key:{},value:{}", datasourceUniqueId,createDataSourceClient.getConnection());
+            return createDataSourceClient;
         });
         return dataSourceClient.getConnection();
     }
