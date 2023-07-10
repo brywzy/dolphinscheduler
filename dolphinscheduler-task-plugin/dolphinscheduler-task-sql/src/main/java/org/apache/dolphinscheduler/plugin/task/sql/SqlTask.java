@@ -193,6 +193,24 @@ public class SqlTask extends AbstractTask {
         Connection connection = null;
         try {
 
+            DbType dbType = DbType.valueOf(sqlParameters.getType());
+            logger.info("db type:"+dbType);
+            logger.info("sql type:"+dbType.getCode() +"\t descriptor:"+dbType.getDescp());
+            logger.info("baseConnectionParam:"+baseConnectionParam);
+            logger.info("baseConnectionParam user:"+baseConnectionParam.getUser()+"\t pwd:"+baseConnectionParam.getPassword()+"\t url:"+baseConnectionParam.getJdbcUrl());
+
+            for (SqlBinds sqlBinds : mainStatementsBinds){
+                logger.info("mainStatementsBinds:"+sqlBinds);
+            }
+            for (SqlBinds sqlBinds : preStatementsBinds){
+                logger.info("preStatementsBinds:"+sqlBinds);
+            }
+            for (SqlBinds sqlBinds : postStatementsBinds){
+                logger.info("postStatementsBinds:"+sqlBinds);
+            }
+            for (String func : createFuncs){
+                logger.info("createFuncs:"+func);
+            }
             // create connection
             connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
             // create temp function
