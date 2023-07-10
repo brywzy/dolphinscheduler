@@ -28,6 +28,8 @@ import org.apache.dolphinscheduler.spi.enums.DbType;
 
 import java.sql.Connection;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +72,17 @@ public class DataSourceClientProvider {
         String datasourceUniqueId = DataSourceUtils.getDatasourceUniqueId(baseConnectionParam, dbType);
         logger.info("Get connection from datasource {}", datasourceUniqueId);
 
+        ConcurrentMap<String, DataSourceClient> dataSourceClientConcurrentMap = uniqueId2dataSourceClientCache.asMap();
+        Set<String> keySet = dataSourceClientConcurrentMap.keySet();
+        for (String key : keySet){
+            DataSourceClient dataSourceClient = dataSourceClientConcurrentMap.get(key);
+            if (dataSourceClient==null){
+                logger.info("DataSourceClientCache key:{},value:{}", key,"no cache");
+            }else{
+                logger.info("DataSourceClientCache key:{},value:{}", key,dataSourceClient.getConnection());
+            }
+
+        }
         DataSourceClient dataSourceClient = uniqueId2dataSourceClientCache.get(datasourceUniqueId, () -> {
             Map<String, DataSourceChannel> dataSourceChannelMap = dataSourcePluginManager.getDataSourceChannelMap();
             DataSourceChannel dataSourceChannel = dataSourceChannelMap.get(dbType.getDescp());
