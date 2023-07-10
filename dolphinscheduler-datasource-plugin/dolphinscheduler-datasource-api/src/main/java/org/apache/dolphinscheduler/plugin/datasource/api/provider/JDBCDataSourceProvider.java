@@ -45,7 +45,6 @@ public class JDBCDataSourceProvider {
         logger.info("Creating HikariDataSource pool for maxActive:{}",
                 PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MAX_ACTIVE, 50));
         HikariDataSource dataSource = new HikariDataSource();
-
         //TODO Support multiple versions of data sources
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         loaderJdbcDriver(classLoader, properties, dbType);
@@ -54,9 +53,21 @@ public class JDBCDataSourceProvider {
         dataSource.setJdbcUrl(DataSourceUtils.getJdbcUrl(dbType, properties));
         dataSource.setUsername(properties.getUser());
         dataSource.setPassword(PasswordUtils.decodePassword(properties.getPassword()));
-
-        dataSource.setMinimumIdle(PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MIN_IDLE, 5));
-        dataSource.setMaximumPoolSize(PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MAX_ACTIVE, 50));
+        /**
+         *  todo
+         *  这里是hive数据源的时候  连接数应为1
+         *  如果为多个 在org.apache.dolphinscheduler.plugin.datasource.api.plugin.DataSourceClientProvider.getConnection
+         *  时返回的连接串是不一致的，此时旧的连接无法使用。
+         *  也可以去修改hive数据源的时候缓存的是connection，不是  datasource
+         *
+         */
+        if (dbType.isHive()){
+            dataSource.setMinimumIdle(1);
+            dataSource.setMaximumPoolSize(1);
+        }else {
+            dataSource.setMinimumIdle(PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MIN_IDLE, 5));
+            dataSource.setMaximumPoolSize(PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MAX_ACTIVE, 50));
+        }
         dataSource.setConnectionTestQuery(properties.getValidationQuery());
 
         if (properties.getProps() != null) {
