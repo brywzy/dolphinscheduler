@@ -62,6 +62,7 @@ public class JDBCDataSourceProvider {
          *
          */
         if (dbType.isHive()){
+            logger.info("hive datasource重新设置 避免从缓存的数据源中获取的链接不是同一个");
             dataSource.setMinimumIdle(1);
             dataSource.setMaximumPoolSize(1);
         }else {
