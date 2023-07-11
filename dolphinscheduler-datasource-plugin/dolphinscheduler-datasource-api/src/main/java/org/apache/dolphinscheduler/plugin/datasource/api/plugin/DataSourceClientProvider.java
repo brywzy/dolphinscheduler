@@ -27,6 +27,7 @@ import org.apache.dolphinscheduler.spi.datasource.DataSourceClient;
 import org.apache.dolphinscheduler.spi.enums.DbType;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -53,6 +54,18 @@ public class DataSourceClientProvider {
         })
         .maximumSize(100)
         .build();
+
+    private static final Cache<String, Connection> uniqueId2connectionClientCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(6, TimeUnit.HOURS)
+            .removalListener((RemovalListener<String, Connection>) notification -> {
+                try (Connection closedClient = notification.getValue()) {
+                    logger.info("Connection: {} is removed from cache due to expire", notification.getKey());
+                }catch (SQLException e){}
+            })
+            .maximumSize(100)
+            .build();
+
+
     private DataSourcePluginManager dataSourcePluginManager;
 
     private DataSourceClientProvider() {
@@ -93,6 +106,22 @@ public class DataSourceClientProvider {
             return createDataSourceClient;
         });
         return dataSourceClient.getConnection();
+    }
+
+    public Connection getConnectionByHive(DbType dbType, ConnectionParam connectionParam) throws ExecutionException {
+        BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
+        String connectionUniqueId = DataSourceUtils.getDatasourceUniqueId(baseConnectionParam, dbType);
+        logger.info("Get connection {}", connectionUniqueId);
+        Connection connection = uniqueId2connectionClientCache.get(connectionUniqueId, () -> {
+            Map<String, DataSourceChannel> dataSourceChannelMap = dataSourcePluginManager.getDataSourceChannelMap();
+            DataSourceChannel dataSourceChannel = dataSourceChannelMap.get(dbType.getDescp());
+            if (null == dataSourceChannel) {
+                throw new RuntimeException(String.format("datasource plugin '%s' is not found", dbType.getDescp()));
+            }
+            DataSourceClient createDataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
+            return createDataSourceClient.getConnection();
+        });
+        return connection;
     }
 
     private void initDataSourcePlugin() {

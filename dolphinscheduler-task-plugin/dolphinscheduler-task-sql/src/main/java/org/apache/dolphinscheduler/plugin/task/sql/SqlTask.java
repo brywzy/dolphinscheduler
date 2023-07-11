@@ -215,9 +215,6 @@ public class SqlTask extends AbstractTask {
         try {
 
             DbType dbType = DbType.valueOf(sqlParameters.getType());
-            if (dbType.isHive() && preStatementsBinds.isEmpty()){
-                preStatementsBinds.add(new SqlBinds("set mapreduce.job.queuename=etl",null));
-            }
             logger.info("db type:"+dbType);
             logger.info("sql type:"+dbType.getCode() +"\t descriptor:"+dbType.getDescp());
             logger.info("baseConnectionParam:"+baseConnectionParam);
@@ -233,8 +230,12 @@ public class SqlTask extends AbstractTask {
                 logger.info("postStatementsBinds:"+sqlBinds.getSql());
             }
             // create connection
+//            if (dbType.isHive()){
+//                connection = DataSourceClientProvider.getInstance().getConnectionByHive(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
+//            }else {
+//                connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
+//            }
             connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
-
             logger.info("connection:"+connection + "\t is closed:"+connection.isClosed());
 
             // create temp function
