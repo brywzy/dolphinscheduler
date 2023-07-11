@@ -230,12 +230,12 @@ public class SqlTask extends AbstractTask {
                 logger.info("postStatementsBinds:"+sqlBinds.getSql());
             }
             // create connection
-//            if (dbType.isHive()){
-//                connection = DataSourceClientProvider.getInstance().getConnectionByHive(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
-//            }else {
-//                connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
-//            }
-            connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
+            if (dbType.isHive()){
+                connection = DataSourceClientProvider.getInstance().getConnectionByHive(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
+            }else {
+                connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
+            }
+//            connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
             logger.info("connection:"+connection + "\t is closed:"+connection.isClosed());
 
             // create temp function
