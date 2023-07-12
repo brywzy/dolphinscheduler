@@ -84,18 +84,18 @@ public class DataSourceClientProvider {
         BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
         String datasourceUniqueId = DataSourceUtils.getDatasourceUniqueId(baseConnectionParam, dbType);
         logger.info("Get connection from datasource {}", datasourceUniqueId);
-
-        ConcurrentMap<String, DataSourceClient> dataSourceClientConcurrentMap = uniqueId2dataSourceClientCache.asMap();
-        Set<String> keySet = dataSourceClientConcurrentMap.keySet();
-        for (String key : keySet){
-            DataSourceClient dataSourceClient = dataSourceClientConcurrentMap.get(key);
-            logger.info("DataSourceClientCache dataSourceClient:{}", dataSourceClient);
-            if (dataSourceClient==null){
-                logger.info("DataSourceClientCache key:{},value:{}", key,"no cache");
-            }else{
-                logger.info("DataSourceClientCache key:{},value:{}", key,dataSourceClient.getConnection());
-            }
-        }
+//
+//        ConcurrentMap<String, DataSourceClient> dataSourceClientConcurrentMap = uniqueId2dataSourceClientCache.asMap();
+//        Set<String> keySet = dataSourceClientConcurrentMap.keySet();
+//        for (String key : keySet){
+//            DataSourceClient dataSourceClient = dataSourceClientConcurrentMap.get(key);
+//            logger.info("DataSourceClientCache dataSourceClient:{}", dataSourceClient);
+//            if (dataSourceClient==null){
+//                logger.info("DataSourceClientCache key:{},value:{}", key,"no cache");
+//            }else{
+//                logger.info("DataSourceClientCache key:{},value:{}", key,dataSourceClient.getConnection());
+//            }
+//        }
         DataSourceClient dataSourceClient = uniqueId2dataSourceClientCache.get(datasourceUniqueId, () -> {
             Map<String, DataSourceChannel> dataSourceChannelMap = dataSourcePluginManager.getDataSourceChannelMap();
             DataSourceChannel dataSourceChannel = dataSourceChannelMap.get(dbType.getDescp());
