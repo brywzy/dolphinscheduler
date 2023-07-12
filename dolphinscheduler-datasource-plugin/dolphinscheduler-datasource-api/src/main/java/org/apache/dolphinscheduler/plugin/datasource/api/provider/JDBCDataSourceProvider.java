@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.datasource.api.provider;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.constants.DataSourceConstants;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
@@ -66,6 +67,9 @@ public class JDBCDataSourceProvider {
     }
 
     /**
+     * xxx 返回的connection是同一个，但是 hikari的代理类不同
+     *  HikariProxyConnection@820914198 wrapping org.apache.hive.jdbc.HiveConnection@67a20f67
+     *  HikariProxyConnection@1353070773 wrapping org.apache.hive.jdbc.HiveConnection@67a20f67
      * @return One Session Jdbc DataSource
      */
     public static HikariDataSource createOneSessionJdbcDataSource(BaseConnectionParam properties, DbType dbType) {
@@ -93,6 +97,39 @@ public class JDBCDataSourceProvider {
         logger.info("Creating OneSession HikariDataSource pool success.");
         return dataSource;
     }
+
+
+    /**
+     * @return One Session Jdbc DataSource by Druid
+     */
+    public static DruidDataSource createOneSessionJdbcDataSourceByDruid(BaseConnectionParam properties, DbType dbType) {
+        logger.info("Creating OneSession DruidDataSource pool for maxActive:{}",
+                PropertyUtils.getInt(DataSourceConstants.SPRING_DATASOURCE_MAX_ACTIVE, 50));
+
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setDriverClassName(properties.getDriverClassName());
+        druidDataSource.setUrl(DataSourceUtils.getJdbcUrl(dbType, properties));
+        druidDataSource.setUsername(properties.getUser());
+        druidDataSource.setPassword(PasswordUtils.decodePassword(properties.getPassword()));
+
+        Boolean isOneSession = PropertyUtils.getBoolean(Constants.SUPPORT_HIVE_ONE_SESSION, false);
+        druidDataSource.setInitialSize(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.initialSize", 2));
+        druidDataSource.setMinIdle(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.minIdle", 5));
+        druidDataSource.setMaxActive(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.maxActive", 50));
+        druidDataSource.setMaxWait(PropertyUtils.getLong("spring.datasource.hive.maxWait", 60 * 1000));
+        druidDataSource.setTimeBetweenEvictionRunsMillis(PropertyUtils.getLong("spring.datasource.hive.timeBetweenEvictionRunsMillis", 600 * 1000));
+        druidDataSource.setMinEvictableIdleTimeMillis(PropertyUtils.getLong("spring.datasource.hive.minEvictableIdleTimeMillis", 300 * 1000));
+
+        druidDataSource.setValidationQuery(properties.getValidationQuery());
+        druidDataSource.setTestWhileIdle(true);
+        druidDataSource.setTestOnBorrow(false);
+        druidDataSource.setTestOnReturn(false);
+
+
+        logger.info("Creating OneSession DruidDataSource pool success.");
+        return druidDataSource;
+    }
+
 
     protected static void loaderJdbcDriver(ClassLoader classLoader, BaseConnectionParam properties, DbType dbType) {
         String drv = StringUtils.isBlank(properties.getDriverClassName()) ? DataSourceUtils.getDatasourceProcessor(dbType).getDatasourceDriver() : properties.getDriverClassName();

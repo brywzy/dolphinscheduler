@@ -21,6 +21,7 @@ import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.HADOOP_S
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.JAVA_SECURITY_KRB5_CONF;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.JAVA_SECURITY_KRB5_CONF_PATH;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.datasource.api.client.CommonDataSourceClient;
@@ -60,6 +61,7 @@ public class HiveDataSourceClient extends CommonDataSourceClient {
     private Configuration hadoopConf;
     private UserGroupInformation ugi;
     private boolean retryGetConnection = true;
+    private DruidDataSource druidDataSource;
 
     public HiveDataSourceClient(BaseConnectionParam baseConnectionParam, DbType dbType) {
         super(baseConnectionParam, dbType);
@@ -82,8 +84,9 @@ public class HiveDataSourceClient extends CommonDataSourceClient {
         this.ugi = createUserGroupInformation(baseConnectionParam.getUser());
         logger.info("Create ugi success.");
 
-        this.dataSource = JDBCDataSourceProvider.createOneSessionJdbcDataSource(baseConnectionParam, dbType);
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+//        this.dataSource = JDBCDataSourceProvider.createOneSessionJdbcDataSource(baseConnectionParam, dbType);
+        this.druidDataSource = JDBCDataSourceProvider.createOneSessionJdbcDataSourceByDruid(baseConnectionParam, dbType);
+        this.jdbcTemplate = new JdbcTemplate(druidDataSource);
         logger.info("Init {} success.", getClass().getName());
     }
 
@@ -151,7 +154,7 @@ public class HiveDataSourceClient extends CommonDataSourceClient {
     @Override
     public Connection getConnection() {
         try {
-            return dataSource.getConnection();
+            return druidDataSource.getConnection();
         } catch (SQLException e) {
             boolean kerberosStartupState = PropertyUtils.getBoolean(HADOOP_SECURITY_AUTHENTICATION_STARTUP_STATE, false);
             if (retryGetConnection && kerberosStartupState) {

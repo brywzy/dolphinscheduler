@@ -236,7 +236,7 @@ public class SqlTask extends AbstractTask {
                 connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
             }
 //            connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
-            logger.info("connection:"+connection + "\t is closed:"+connection.isClosed());
+            logger.info("connection:"+connection );
 
             // create temp function
             if (CollectionUtils.isNotEmpty(createFuncs)) {
