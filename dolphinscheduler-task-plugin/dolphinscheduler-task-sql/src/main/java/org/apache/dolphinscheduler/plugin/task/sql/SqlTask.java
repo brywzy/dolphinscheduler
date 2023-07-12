@@ -236,7 +236,7 @@ public class SqlTask extends AbstractTask {
 //                connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
 //            }
             connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
-            logger.info("connection:"+connection );
+            logger.info("get druid connection:"+connection );
 
             // create temp function
             if (CollectionUtils.isNotEmpty(createFuncs)) {
@@ -269,6 +269,7 @@ public class SqlTask extends AbstractTask {
             logger.error("execute sql error: {}", e.getMessage());
             throw e;
         } finally {
+            logger.info("close connection");
             close(connection);
         }
     }

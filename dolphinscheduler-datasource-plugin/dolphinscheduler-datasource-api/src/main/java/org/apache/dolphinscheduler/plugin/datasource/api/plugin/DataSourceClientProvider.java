@@ -89,6 +89,7 @@ public class DataSourceClientProvider {
         Set<String> keySet = dataSourceClientConcurrentMap.keySet();
         for (String key : keySet){
             DataSourceClient dataSourceClient = dataSourceClientConcurrentMap.get(key);
+            logger.info("DataSourceClientCache dataSourceClient:{}", dataSourceClient);
             if (dataSourceClient==null){
                 logger.info("DataSourceClientCache key:{},value:{}", key,"no cache");
             }else{
@@ -102,12 +103,15 @@ public class DataSourceClientProvider {
                 throw new RuntimeException(String.format("datasource plugin '%s' is not found", dbType.getDescp()));
             }
             DataSourceClient createDataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
-            logger.info("DataSourceClientCache create new key:{},value:{}", datasourceUniqueId,createDataSourceClient.getConnection());
+            logger.info("DataSourceClientCache create new key:{},value:{},conn:{}", datasourceUniqueId,createDataSourceClient,createDataSourceClient.getConnection());
             return createDataSourceClient;
         });
-        return dataSourceClient.getConnection();
-    }
 
+        Connection connection = dataSourceClient.getConnection();
+        logger.info("return druid connection");
+        return connection;
+    }
+/*
     public Connection getConnectionByHive(DbType dbType, ConnectionParam connectionParam) throws ExecutionException {
         BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
         String connectionUniqueId = DataSourceUtils.getDatasourceUniqueId(baseConnectionParam, dbType);
@@ -123,6 +127,7 @@ public class DataSourceClientProvider {
         });
         return connection;
     }
+*/
 
     private void initDataSourcePlugin() {
         dataSourcePluginManager = new DataSourcePluginManager();
