@@ -108,7 +108,7 @@ public class DataSourceClientProvider {
         });
 
         Connection connection = dataSourceClient.getConnection();
-        logger.info("return druid connection");
+        logger.info("return druid connection:"+connection);
         return connection;
     }
 /*

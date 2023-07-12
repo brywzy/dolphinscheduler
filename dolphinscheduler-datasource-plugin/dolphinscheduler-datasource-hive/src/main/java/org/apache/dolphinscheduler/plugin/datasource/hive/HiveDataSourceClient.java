@@ -22,6 +22,7 @@ import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.JAVA_SEC
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.JAVA_SECURITY_KRB5_CONF_PATH;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidPooledConnection;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.datasource.api.client.CommonDataSourceClient;
@@ -154,7 +155,9 @@ public class HiveDataSourceClient extends CommonDataSourceClient {
     @Override
     public Connection getConnection() {
         try {
-            return druidDataSource.getConnection();
+            DruidPooledConnection connection = druidDataSource.getConnection();
+            logger.info("gen druid connection:"+connection);
+            return connection;
         } catch (SQLException e) {
             boolean kerberosStartupState = PropertyUtils.getBoolean(HADOOP_SECURITY_AUTHENTICATION_STARTUP_STATE, false);
             if (retryGetConnection && kerberosStartupState) {
