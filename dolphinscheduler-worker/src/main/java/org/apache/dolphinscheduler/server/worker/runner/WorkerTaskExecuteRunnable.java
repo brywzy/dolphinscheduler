@@ -232,7 +232,7 @@ public abstract class WorkerTaskExecuteRunnable implements Runnable {
         logger.info("Success initialized task plugin instance success");
 
         task.getParameters().setVarPool(taskExecutionContext.getVarPool());
-        logger.info("Success set taskVarPool: {}", taskExecutionContext.getVarPool());
+//        logger.info("Success set taskVarPool: {}", taskExecutionContext.getVarPool());
 
     }
 

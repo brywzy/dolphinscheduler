@@ -394,6 +394,10 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                 completeTaskMap.put(taskInstance.getTaskCode(), taskInstance.getId());
                 // todo: merge the last taskInstance
                 processInstance.setVarPool(taskInstance.getVarPool());
+//                ProcessInstance dataProcessInstance = new ProcessInstance();
+//                ProcessInstanceUtils.copyProcessInstance(processInstance , dataProcessInstance);
+//                processInstanceDao.upsertProcessInstance(dataProcessInstance);
+
                 processInstanceDao.upsertProcessInstance(processInstance);
                 if (!processInstance.isBlocked()) {
                     submitPostNode(Long.toString(taskInstance.getTaskCode()));
@@ -853,6 +857,10 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                         if (task.getState().isNeedFaultTolerance()) {
                             logger.info("TaskInstance needs fault tolerance, will be added to standby list.");
                             task.setFlag(Flag.NO);
+//                            TaskInstance dataTaskInstance = new TaskInstance();
+//                            TaskInstanceUtils.copyTaskInstance(task, dataTaskInstance);
+//                            processService.changeOutParam(dataTaskInstance);
+//                            dataTaskInstance.setVarPool(null);
                             processService.updateTaskInstance(task);
 
                             // tolerantTaskInstance add to standby list directly
@@ -1698,6 +1706,10 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                 processInstance.setEndTime(new Date());
             }
             try {
+//                ProcessInstance dataProcessInstance = new ProcessInstance();
+//                ProcessInstanceUtils.copyProcessInstance(processInstance,dataProcessInstance);
+//                processInstanceDao.updateProcessInstance(dataProcessInstance);
+
                 processInstanceDao.updateProcessInstance(processInstance);
             } catch (Exception ex) {
                 // recover the status

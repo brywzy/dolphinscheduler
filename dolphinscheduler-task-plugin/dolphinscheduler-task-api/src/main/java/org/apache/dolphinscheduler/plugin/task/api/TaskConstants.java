@@ -266,7 +266,7 @@ public class TaskConstants {
     /**
      * default display rows
      */
-    public static final int DEFAULT_DISPLAY_ROWS = 10;
+    public static final int DEFAULT_DISPLAY_ROWS = 3;
 
     /**
      * jar

@@ -91,7 +91,12 @@ public class TaskResultEventHandler implements TaskEventHandler {
             taskInstance.setState(taskEvent.getState());
             taskInstance.setEndTime(taskEvent.getEndTime());
             taskInstance.setVarPool(taskEvent.getVarPool());
-            processService.changeOutParam(taskInstance);
+
+//            TaskInstance dataTaskInstance = new TaskInstance();
+//            TaskInstanceUtils.copyTaskInstance(taskInstance, dataTaskInstance);
+//            processService.changeOutParam(dataTaskInstance);
+//
+//            dataTaskInstance.setVarPool(null);
             processService.updateTaskInstance(taskInstance);
             sendAckToWorker(taskEvent);
         } catch (Exception ex) {

@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.parameters;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.SQLTaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
@@ -296,6 +297,25 @@ public class SqlParameters extends AbstractParameters {
                 info.setValue(String.valueOf(firstRow.get(info.getProp())));
                 varPool.add(info);
             }
+        }
+
+    }
+
+
+    public void dealOutObjectParam(ArrayNode result,Property property) {
+        if (result==null || result.size()==0) {
+            property.setValue("");
+            varPool.add(property);
+            return;
+        }
+        // if sql return more than one line
+        if (result.size() > 1) {
+            property.setValue(JSONUtils.toJsonString(result));
+            varPool.add(property);
+        } else {
+            // result only one line
+            property.setValue(JSONUtils.toJsonString(result.get(0)));
+            varPool.add(property);
         }
 
     }

@@ -115,6 +115,8 @@ import org.apache.dolphinscheduler.dao.mapper.UserMapper;
 import org.apache.dolphinscheduler.dao.mapper.WorkFlowLineageMapper;
 import org.apache.dolphinscheduler.dao.repository.ProcessInstanceDao;
 import org.apache.dolphinscheduler.dao.utils.DqRuleUtils;
+import org.apache.dolphinscheduler.dao.utils.TaskInstanceUtils;
+import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
 import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
 import org.apache.dolphinscheduler.plugin.task.api.enums.TaskExecutionStatus;
 import org.apache.dolphinscheduler.plugin.task.api.enums.dp.DqTaskState;
@@ -141,6 +143,7 @@ import org.apache.dolphinscheduler.service.utils.DagHelper;
 import org.apache.dolphinscheduler.spi.enums.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -1592,10 +1595,16 @@ public class ProcessServiceImpl implements ProcessService {
         if (taskInstance.getFirstSubmitTime() == null) {
             taskInstance.setFirstSubmitTime(taskInstance.getSubmitTime());
         }
+
+//        TaskInstance dataTaskInstance = new TaskInstance();
+//        TaskInstanceUtils.copyTaskInstance(taskInstance, dataTaskInstance);
+//        changeOutParam(dataTaskInstance);
+//        dataTaskInstance.setVarPool(null);
         boolean saveResult = saveTaskInstance(taskInstance);
         if (!saveResult) {
             return null;
         }
+//        taskInstance.setId(dataTaskInstance.getId());
         return taskInstance;
     }
 
@@ -1696,7 +1705,12 @@ public class ProcessServiceImpl implements ProcessService {
      */
     @Override
     public boolean createTaskInstance(TaskInstance taskInstance) {
-        int count = taskInstanceMapper.insert(taskInstance);
+        TaskInstance dataTaskInstance = new TaskInstance();
+        TaskInstanceUtils.copyTaskInstance(taskInstance, dataTaskInstance);
+        changeOutParam(dataTaskInstance);
+        dataTaskInstance.setVarPool(null);
+        int count = taskInstanceMapper.insert(dataTaskInstance);
+        taskInstance.setId(dataTaskInstance.getId());
         return count > 0;
     }
 
@@ -1708,7 +1722,12 @@ public class ProcessServiceImpl implements ProcessService {
      */
     @Override
     public boolean updateTaskInstance(TaskInstance taskInstance) {
-        int count = taskInstanceMapper.updateById(taskInstance);
+        TaskInstance dataTaskInstance = new TaskInstance();
+        TaskInstanceUtils.copyTaskInstance(taskInstance, dataTaskInstance);
+        changeOutParam(dataTaskInstance);
+        dataTaskInstance.setVarPool(null);
+        int count = taskInstanceMapper.updateById(dataTaskInstance);
+        taskInstance.setId(dataTaskInstance.getId());
         return count > 0;
     }
 
@@ -1965,12 +1984,12 @@ public class ProcessServiceImpl implements ProcessService {
         List<Property> allParam = JSONUtils.toList(JSONUtils.toJsonString(localParams), Property.class);
         Map<String, String> outProperty = new HashMap<>();
         for (Property info : properties) {
-            if (info.getDirect() == Direct.OUT) {
+            if (info.getDirect() == Direct.OUT && info.getType() != DataType.OBJECT) {
                 outProperty.put(info.getProp(), info.getValue());
             }
         }
         for (Property info : allParam) {
-            if (info.getDirect() == Direct.OUT) {
+            if (info.getDirect() == Direct.OUT && info.getType() != DataType.OBJECT) {
                 String paramName = info.getProp();
                 info.setValue(outProperty.get(paramName));
             }

@@ -24,6 +24,7 @@ import org.apache.dolphinscheduler.dao.repository.ProcessInstanceDao;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.dolphinscheduler.dao.utils.ProcessInstanceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -41,15 +42,24 @@ public class ProcessInstanceDaoImpl implements ProcessInstanceDao {
 
     @Override
     public int updateProcessInstance(ProcessInstance processInstance) {
-        return processInstanceMapper.updateById(processInstance);
+        ProcessInstance dataProcessInstance = new ProcessInstance();
+        ProcessInstanceUtils.copyProcessInstance(processInstance,dataProcessInstance);
+        int result = processInstanceMapper.updateById(dataProcessInstance);
+        processInstance.setId(dataProcessInstance.getId());
+        return result;
     }
 
     @Override
     public int upsertProcessInstance(@NonNull ProcessInstance processInstance) {
+        ProcessInstance dataProcessInstance = new ProcessInstance();
+        ProcessInstanceUtils.copyProcessInstance(processInstance , dataProcessInstance);
+        int result = 0;
         if (processInstance.getId() != null) {
-            return updateProcessInstance(processInstance);
+            result = updateProcessInstance(dataProcessInstance);
         } else {
-            return insertProcessInstance(processInstance);
+            result = insertProcessInstance(dataProcessInstance);
         }
+        processInstance.setId(dataProcessInstance.getId());
+        return result;
     }
 }

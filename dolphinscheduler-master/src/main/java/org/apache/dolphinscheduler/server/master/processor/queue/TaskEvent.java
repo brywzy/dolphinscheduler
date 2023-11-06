@@ -146,4 +146,22 @@ public class TaskEvent {
         event.setEvent(TaskEventType.WORKER_REJECT);
         return event;
     }
+
+    @Override
+    public String toString() {
+        return "TaskEvent{" +
+                "taskInstanceId=" + taskInstanceId +
+                ", workerAddress='" + workerAddress + '\'' +
+                ", state=" + state +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", executePath='" + executePath + '\'' +
+                ", logPath='" + logPath + '\'' +
+                ", processId=" + processId +
+                ", appIds='" + appIds + '\'' +
+                ", event=" + event +
+                ", channel=" + channel +
+                ", processInstanceId=" + processInstanceId +
+                '}';
+    }
 }

@@ -97,7 +97,8 @@ public class TaskDispatchProcessor implements NettyRequestProcessor {
             return;
         }
         final String workflowMasterAddress = taskDispatchCommand.getMessageSenderAddress();
-        logger.info("Receive task dispatch request, command: {}", taskDispatchCommand);
+
+//        logger.info("Receive task dispatch request, command: {}", taskDispatchCommand);
 
         TaskExecutionContext taskExecutionContext = taskDispatchCommand.getTaskExecutionContext();
 

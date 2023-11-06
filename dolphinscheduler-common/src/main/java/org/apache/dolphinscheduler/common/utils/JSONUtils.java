@@ -245,6 +245,12 @@ public class JSONUtils {
         });
     }
 
+
+    public static Map<String, Object> toObjectMap(String json) {
+        return parseObject(json, new TypeReference<Map<String, Object>>() {
+        });
+    }
+
     /**
      * json to map
      *
