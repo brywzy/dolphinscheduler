@@ -24,7 +24,7 @@ public final class EmailConstants {
 
     public static final String TEXT_HTML_CHARSET_UTF_8 = "text/html;charset=utf-8";
 
-    public static final int NUMBER_1000 = 1000;
+    public static final int NUMBER_1000 = 10;
 
     public static final String TR = "<tr>";
 

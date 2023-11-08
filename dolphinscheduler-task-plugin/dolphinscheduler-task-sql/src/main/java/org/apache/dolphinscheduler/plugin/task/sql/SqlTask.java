@@ -143,16 +143,18 @@ public class SqlTask extends AbstractTask {
             boolean isObjectListIn = false;
             String objectListValue = null;
             int batchSize = BATCH_SIZE;
-            Set<String> keySet = paramsMap.keySet();
-            for (String paramKey : keySet){
-                Property property = paramsMap.get(paramKey);
-                if (property.getDirect()==Direct.IN){
-                    if (property.getProp().equalsIgnoreCase("batchSize")){
-                        batchSize = Integer.parseInt(property.getValue());
-                    }
-                    if (property.getType() == DataType.OBJECT){
-                        objectListValue = property.getValue();
-                        isObjectListIn = true;
+            if (paramsMap!=null) {
+                Set<String> keySet = paramsMap.keySet();
+                for (String paramKey : keySet) {
+                    Property property = paramsMap.get(paramKey);
+                    if (property.getDirect() == Direct.IN) {
+                        if (property.getProp().equalsIgnoreCase("batchSize")) {
+                            batchSize = Integer.parseInt(property.getValue());
+                        }
+                        if (property.getType() == DataType.OBJECT) {
+                            objectListValue = property.getValue();
+                            isObjectListIn = true;
+                        }
                     }
                 }
             }

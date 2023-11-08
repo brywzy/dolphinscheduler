@@ -195,7 +195,7 @@ public final class MailSender {
             try {
 
                 String partContent = (showType.equals(ShowType.ATTACHMENT.getDescp())
-                    ? "Please see the attachment " + title + EmailConstants.EXCEL_SUFFIX_XLSX
+                    ? "详细内容请看附件 " + title + EmailConstants.EXCEL_SUFFIX_XLSX
                     : htmlTable(content, false));
 
                 attachment(title, content, partContent);
