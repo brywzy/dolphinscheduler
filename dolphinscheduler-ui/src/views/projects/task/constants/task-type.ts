@@ -55,9 +55,9 @@ export const TASK_TYPES_MAP = {
   SUB_PROCESS: {
     alias: 'SUB_PROCESS'
   },
-  PROCEDURE: {
-    alias: 'PROCEDURE'
-  },
+  // PROCEDURE: {
+  //   alias: 'PROCEDURE'
+  // },
   SQL: {
     alias: 'SQL'
   },
@@ -67,10 +67,10 @@ export const TASK_TYPES_MAP = {
   FLINK: {
     alias: 'FLINK'
   },
-  MR: {
-    alias: 'MapReduce',
-    helperLinkDisable: true
-  },
+  // MR: {
+  //   alias: 'MapReduce',
+  //   helperLinkDisable: true
+  // },
   PYTHON: {
     alias: 'PYTHON'
   },
@@ -83,9 +83,9 @@ export const TASK_TYPES_MAP = {
   DATAX: {
     alias: 'DataX'
   },
-  PIGEON: {
-    alias: 'PIGEON'
-  },
+  // PIGEON: {
+  //   alias: 'PIGEON'
+  // },
   SQOOP: {
     alias: 'SQOOP',
     helperLinkDisable: true
@@ -100,59 +100,59 @@ export const TASK_TYPES_MAP = {
   SWITCH: {
     alias: 'SWITCH'
   },
-  SEATUNNEL: {
-    alias: 'SeaTunnel',
-    helperLinkDisable: true
-  },
-  EMR: {
-    alias: 'AmazonEMR',
-    helperLinkDisable: true
-  },
-  ZEPPELIN: {
-    alias: 'ZEPPELIN',
-    helperLinkDisable: true
-  },
+  // SEATUNNEL: {
+  //   alias: 'SeaTunnel',
+  //   helperLinkDisable: true
+  // },
+  // EMR: {
+  //   alias: 'AmazonEMR',
+  //   helperLinkDisable: true
+  // },
+  // ZEPPELIN: {
+  //   alias: 'ZEPPELIN',
+  //   helperLinkDisable: true
+  // },
   JUPYTER: {
     alias: 'JUPYTER',
     helperLinkDisable: true
   },
-  K8S: {
-    alias: 'K8S',
-    helperLinkDisable: true
-  },
-  MLFLOW: {
-    alias: 'MLFLOW',
-    helperLinkDisable: true
-  },
-  OPENMLDB: {
-    alias: 'OPENMLDB',
-    helperLinkDisable: true
-  },
-  DVC: {
-    alias: 'DVC',
-    helperLinkDisable: true
-  },
-  DINKY: {
-    alias: 'DINKY',
-    helperLinkDisable: true
-  },
-  SAGEMAKER: {
-    alias: 'SageMaker',
-    helperLinkDisable: true
-  },
-  CHUNJUN: {
-    alias: 'CHUNJUN',
-    helperLinkDisable: true
-  },
-  FLINK_STREAM: {
-    alias: 'FLINK_STREAM',
-    helperLinkDisable: true,
-    taskExecuteType: 'STREAM'
-  },
-  PYTORCH: {
-    alias: 'Pytorch',
-    helperLinkDisable: true
-  },
+  // K8S: {
+  //   alias: 'K8S',
+  //   helperLinkDisable: true
+  // },
+  // MLFLOW: {
+  //   alias: 'MLFLOW',
+  //   helperLinkDisable: true
+  // },
+  // OPENMLDB: {
+  //   alias: 'OPENMLDB',
+  //   helperLinkDisable: true
+  // },
+  // DVC: {
+  //   alias: 'DVC',
+  //   helperLinkDisable: true
+  // },
+  // DINKY: {
+  //   alias: 'DINKY',
+  //   helperLinkDisable: true
+  // },
+  // SAGEMAKER: {
+  //   alias: 'SageMaker',
+  //   helperLinkDisable: true
+  // },
+  // CHUNJUN: {
+  //   alias: 'CHUNJUN',
+  //   helperLinkDisable: true
+  // },
+  // FLINK_STREAM: {
+  //   alias: 'FLINK_STREAM',
+  //   helperLinkDisable: true,
+  //   taskExecuteType: 'STREAM'
+  // },
+  // PYTORCH: {
+  //   alias: 'Pytorch',
+  //   helperLinkDisable: true
+  // },
   HIVECLI: {
     alias: 'HIVECLI',
     helperLinkDisable: true
