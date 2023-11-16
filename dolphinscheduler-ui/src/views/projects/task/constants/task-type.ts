@@ -112,10 +112,10 @@ export const TASK_TYPES_MAP = {
   //   alias: 'ZEPPELIN',
   //   helperLinkDisable: true
   // },
-  JUPYTER: {
-    alias: 'JUPYTER',
-    helperLinkDisable: true
-  },
+  // JUPYTER: {
+  //   alias: 'JUPYTER',
+  //   helperLinkDisable: true
+  // },
   // K8S: {
   //   alias: 'K8S',
   //   helperLinkDisable: true
