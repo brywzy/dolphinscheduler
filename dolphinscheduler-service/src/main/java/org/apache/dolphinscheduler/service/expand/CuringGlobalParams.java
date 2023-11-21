@@ -168,12 +168,14 @@ public class CuringGlobalParams implements CuringParamsService {
         }
         params.put(PARAMETER_TASK_INSTANCE_ID, Integer.toString(taskInstance.getId()));
 
-        if (MapUtils.isNotEmpty(varParams)) {
-            globalParams.putAll(varParams);
-        }
         if (MapUtils.isNotEmpty(localParams)) {
             globalParams.putAll(localParams);
         }
+
+        if (MapUtils.isNotEmpty(varParams)) {
+            globalParams.putAll(varParams);
+        }
+
 
         Iterator<Map.Entry<String, Property>> iter = globalParams.entrySet().iterator();
         while (iter.hasNext()) {

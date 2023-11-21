@@ -138,21 +138,23 @@ public class SqlTask extends AbstractTask {
                     dbType, sqlTaskExecutionContext.getConnectionParams());
 
             Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
+            Map<String, Property> localParametersMap = sqlParameters.getLocalParametersMap();
 
             // check is input object
             boolean isObjectListIn = false;
             String objectListValue = null;
             int batchSize = BATCH_SIZE;
-            if (paramsMap!=null) {
-                Set<String> keySet = paramsMap.keySet();
-                for (String paramKey : keySet) {
-                    Property property = paramsMap.get(paramKey);
-                    if (property.getDirect() == Direct.IN) {
+            if (localParametersMap!=null){
+                Set<String> keySet = localParametersMap.keySet();
+                for (String localKey : keySet){
+                    Property property = localParametersMap.get(localKey);
+                    if (property.getDirect() == Direct.IN
+                            && sqlParameters.getSqlType() == SqlType.NON_QUERY.ordinal()){
                         if (property.getProp().equalsIgnoreCase("batchSize")) {
                             batchSize = Integer.parseInt(property.getValue());
                         }
-                        if (property.getType() == DataType.OBJECT) {
-                            objectListValue = property.getValue();
+                        if (property.getType() == DataType.OBJECT && paramsMap.containsKey(localKey)){
+                            objectListValue = paramsMap.get(localKey).getValue();
                             isObjectListIn = true;
                         }
                     }
