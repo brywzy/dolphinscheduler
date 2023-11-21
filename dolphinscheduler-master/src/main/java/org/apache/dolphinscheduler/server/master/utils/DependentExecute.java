@@ -108,11 +108,15 @@ public class DependentExecute {
                                                  List<DateInterval> dateIntervals) {
 
         DependResult result = DependResult.FAILED;
+        boolean waiting = true;
         for (DateInterval dateInterval : dateIntervals) {
             ProcessInstance processInstance = findLastProcessInterval(dependentItem.getDefinitionCode(),
                     dateInterval);
+            //配置的时间间隔可能需要多个小时，需要先检查完所有的时间后才决定是否waiting
             if (processInstance == null) {
-                return DependResult.WAITING;
+                continue;
+            }else{
+                waiting = false;
             }
             // need to check workflow for updates, so get all task and check the task state
             if (dependentItem.getDepTaskCode() == Constants.DEPENDENT_ALL_TASK_CODE) {
@@ -120,9 +124,21 @@ public class DependentExecute {
             } else {
                 result = getDependTaskResult(dependentItem.getDepTaskCode(), processInstance);
             }
-            if (result != DependResult.SUCCESS) {
-                break;
+            if (result == DependResult.SUCCESS) {
+                return result;
             }
+        }
+
+        // 如果超过当前时间，直接返回failed
+        int size = dateIntervals.size();
+        if (size>0){
+            DateInterval dateInterval = dateIntervals.get(size - 1);
+            if (dateInterval.getEndTime().getTime()<(new Date().getTime()) ) {
+                return DependResult.FAILED;
+            }
+        }
+        if (waiting){
+            return DependResult.WAITING;
         }
         return result;
     }
