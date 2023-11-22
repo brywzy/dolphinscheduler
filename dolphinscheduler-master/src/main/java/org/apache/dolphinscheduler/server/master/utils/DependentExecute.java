@@ -148,11 +148,15 @@ public class DependentExecute {
                                                  int testFlag) {
 
         DependResult result = DependResult.FAILED;
+        boolean waiting = true;
         for (DateInterval dateInterval : dateIntervals) {
             ProcessInstance processInstance = findLastProcessInterval(dependentItem.getDefinitionCode(),
                     dateInterval, testFlag);
+             //continue next dateInterval
             if (processInstance == null) {
-                return DependResult.WAITING;
+                continue;
+            }else{
+                waiting = false;
             }
             // need to check workflow for updates, so get all task and check the task state
             if (dependentItem.getDepTaskCode() == Constants.DEPENDENT_WORKFLOW_CODE) {
@@ -163,10 +167,25 @@ public class DependentExecute {
                 result = dependResultBySingleTaskInstance(processInstance, dependentItem.getDepTaskCode(), dateInterval,
                         testFlag);
             }
-            if (result != DependResult.SUCCESS) {
-                break;
+            //success break
+            if (result == DependResult.SUCCESS) {
+                return result;
             }
         }
+
+         //deadline exceeded
+        int size = dateIntervals.size();
+        if (size>0){
+            DateInterval dateInterval = dateIntervals.get(size - 1);
+            if (dateInterval.getEndTime().getTime()<(new Date().getTime()) ) {
+                return DependResult.FAILED;
+            }
+        }
+
+        if (waiting){
+            return DependResult.WAITING;
+        }
+
         return result;
     }
 
