@@ -371,9 +371,11 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
         }
     }
 
-    public void processTimeout() {
+    public void processTimeout(){
         ProjectUser projectUser = processService.queryProjectWithUserByProcessInstanceId(processInstance.getId());
         this.processAlertManager.sendProcessTimeoutAlert(this.processInstance, projectUser);
+        processInstance.setState(WorkflowExecutionStatus.FAILURE);
+        processInstanceDao.upsertProcessInstance(processInstance);
     }
 
     public void taskTimeout(TaskInstance taskInstance) {
