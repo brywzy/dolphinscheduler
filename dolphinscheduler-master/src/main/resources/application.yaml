@@ -32,10 +32,10 @@ spring:
     caffeine:
       spec: maximumSize=100,expireAfterWrite=300s,recordStats
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://127.0.0.1:5432/dolphinscheduler
-    username: root
-    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.3.5.13:3306/dolphinscheduler?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    username: dolphinscheduler
+    password: dolphinscheduler
     hikari:
       connection-test-query: select 1
       minimum-idle: 5
@@ -73,7 +73,7 @@ registry:
   type: zookeeper
   zookeeper:
     namespace: dolphinscheduler
-    connect-string: localhost:2181
+    connect-string: cfhy-test-bigdata-13:2181
     retry-policy:
       base-sleep-time: 60ms
       max-sleep: 300ms
@@ -111,7 +111,7 @@ master:
   # kill yarn jon when failover taskInstance, default true
   kill-yarn-job-when-task-failover: true
   registry-disconnect-strategy:
-    # The disconnect strategy: stop, waiting
+    # The disconnect strategy:stop, waiting
     strategy: waiting
     # The max waiting time to reconnect to registry if you set the strategy to waiting
     max-waiting-time: 100s
@@ -150,9 +150,9 @@ spring:
       on-profile: mysql
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/dolphinscheduler
-    username: root
-    password: root
+    url: jdbc:mysql://10.3.5.13:3306/dolphinscheduler?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    username: dolphinscheduler
+    password: dolphinscheduler
   quartz:
     properties:
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate

@@ -22,10 +22,10 @@ spring:
   banner:
     charset: UTF-8
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://127.0.0.1:5432/dolphinscheduler
-    username: root
-    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.3.5.13:3306/dolphinscheduler?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    username: dolphinscheduler
+    password: dolphinscheduler
     hikari:
       connection-test-query: select 1
       minimum-idle: 5
@@ -77,6 +77,6 @@ spring:
       on-profile: mysql
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/dolphinscheduler
-    username: root
-    password: root
+    url: jdbc:mysql://10.3.5.13:3306/dolphinscheduler?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    username: dolphinscheduler
+    password: dolphinscheduler
