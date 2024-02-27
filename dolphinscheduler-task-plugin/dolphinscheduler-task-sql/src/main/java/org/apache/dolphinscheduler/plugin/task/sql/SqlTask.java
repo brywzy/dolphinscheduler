@@ -122,14 +122,14 @@ public class SqlTask extends AbstractTask {
 
     @Override
     public void handle(TaskCallBack taskCallBack) throws TaskException {
-        logger.info("sql type : {}, datasource : {}, sql : {} , localParams : {},udfs : {},showType : {},connParams : {},varPool : {} ,query max result limit  {}",
-                sqlParameters.getType(),
-                sqlParameters.getDatasource(),
-                sqlParameters.getSql(),
-                sqlParameters.getUdfs(),
-                sqlParameters.getShowType(),
-                sqlParameters.getConnParams(),
-                sqlParameters.getLimit());
+//        logger.info("sql type : {}, datasource : {}, sql : {} , localParams : {},udfs : {},showType : {},connParams : {},varPool : {} ,query max result limit  {}",
+//                sqlParameters.getType(),
+//                sqlParameters.getDatasource(),
+//                sqlParameters.getSql(),
+//                sqlParameters.getUdfs(),
+//                sqlParameters.getShowType(),
+//                sqlParameters.getConnParams(),
+//                sqlParameters.getLimit());
         try {
 
             DbType dbType = DbType.valueOf(sqlParameters.getType());
@@ -203,7 +203,7 @@ public class SqlTask extends AbstractTask {
         if (dbType.isHive()){
             if (preStatements.isEmpty()){
                 preStatements.add("set mapreduce.job.queuename=etl");
-                preStatements.add("set compression_codec=snappy");
+                preStatements.add("set COMPRESSION_CODEC=snappy");
             }else{
                 boolean hasQueue = false;
                 for (String preSql : preStatements) {
@@ -426,7 +426,7 @@ public class SqlTask extends AbstractTask {
     private String executeUpdate(Connection connection, List<SqlBinds> statementsBinds, String handlerType) throws Exception {
         int result = 0;
         for (SqlBinds sqlBind : statementsBinds) {
-            logger.info("--multi sql debug :"+ sqlBind.getSql() + "\t param : "+sqlBind.getParamsMap());
+//            logger.info("--multi sql debug :"+ sqlBind.getSql() + "\t param : "+sqlBind.getParamsMap());
             try (PreparedStatement statement = prepareStatementAndBind(connection, sqlBind)) {
                 result = statement.executeUpdate();
                 logger.info("{} statement execute update result: {}, for sql: {}", handlerType, result, sqlBind.getSql());
