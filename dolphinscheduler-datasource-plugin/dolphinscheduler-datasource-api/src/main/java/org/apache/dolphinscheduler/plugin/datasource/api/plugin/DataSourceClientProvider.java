@@ -46,14 +46,12 @@ public class DataSourceClientProvider {
 
     private static final long duration = PropertyUtils.getLong(TaskConstants.KERBEROS_EXPIRE_TIME, 24);
     private static final Cache<String, DataSourceClient> uniqueId2dataSourceClientCache = CacheBuilder.newBuilder()
-        .expireAfterWrite(duration, TimeUnit.HOURS)
-        .removalListener((RemovalListener<String, DataSourceClient>) notification -> {
-            try (DataSourceClient closedClient = notification.getValue()) {
-                logger.info("Datasource: {} is removed from cache due to expire", notification.getKey());
-            }
-        })
-        .maximumSize(100)
-        .build();
+            .expireAfterWrite(duration, TimeUnit.HOURS)
+            .removalListener((RemovalListener<String, DataSourceClient>) notification -> {
+                    logger.info("Datasource: {} is removed from cache due to expire", notification.getKey());
+            })
+            .maximumSize(100)
+            .build();
 
     private static final Cache<String, Connection> uniqueId2connectionClientCache = CacheBuilder.newBuilder()
             .expireAfterWrite(6, TimeUnit.HOURS)
@@ -103,11 +101,26 @@ public class DataSourceClientProvider {
                 throw new RuntimeException(String.format("datasource plugin '%s' is not found", dbType.getDescp()));
             }
             DataSourceClient createDataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
+            uniqueId2dataSourceClientCache.put(datasourceUniqueId,createDataSourceClient);
             logger.info("DataSourceClientCache create new key:{},value:{},conn:{}", datasourceUniqueId,createDataSourceClient,createDataSourceClient.getConnection());
             return createDataSourceClient;
         });
+        try {
+            dataSourceClient.checkClient();
+        }catch (Exception e){
+            uniqueId2dataSourceClientCache.invalidate(datasourceUniqueId);
 
+            Map<String, DataSourceChannel> dataSourceChannelMap = dataSourcePluginManager.getDataSourceChannelMap();
+            DataSourceChannel dataSourceChannel = dataSourceChannelMap.get(dbType.getDescp());
+            if (null == dataSourceChannel) {
+                throw new RuntimeException(String.format("datasource plugin '%s' is not found", dbType.getDescp()));
+            }
+            dataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
+            uniqueId2dataSourceClientCache.put(datasourceUniqueId,dataSourceClient);
+            logger.info("check datasource client exception, overwrite datasource client, create new key:{},value:{},conn:{}", datasourceUniqueId,dataSourceClient,dataSourceClient.getConnection());
+        }
         Connection connection = dataSourceClient.getConnection();
+
         logger.info("return druid connection:"+connection);
         return connection;
     }

@@ -239,7 +239,7 @@ public abstract class AbstractTask {
             } else {
                 sqlParamsMap.put(index, prop);
                 index++;
-                logger.info(
+                logger.debug(
                         "setSqlParamsMap: Property with paramName: {} put in sqlParamsMap of content {} successfully.",
                         paramName, content);
             }

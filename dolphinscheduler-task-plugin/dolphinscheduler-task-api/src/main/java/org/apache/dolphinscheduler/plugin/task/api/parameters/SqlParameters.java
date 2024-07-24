@@ -309,13 +309,13 @@ public class SqlParameters extends AbstractParameters {
             return;
         }
         // if sql return more than one line
-        if (result.size() > 1) {
+        if (result.size() >= 1) {
             property.setValue(JSONUtils.toJsonString(result));
             varPool.add(property);
-        } else {
-            // result only one line
-            property.setValue(JSONUtils.toJsonString(result.get(0)));
-            varPool.add(property);
+//        } else {
+//            // result only one line
+//            property.setValue(JSONUtils.toJsonString(result.get(0)));
+//            varPool.add(property);
         }
 
     }

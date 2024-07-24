@@ -101,7 +101,7 @@ management:
 registry:
   type: zookeeper
   zookeeper:
-    namespace: dolphinscheduler
+    namespace: dolphinscheduler_dev
     connect-string: cfhy-test-bigdata-13:2181
     retry-policy:
       base-sleep-time: 60ms
@@ -144,7 +144,7 @@ python-gateway:
 security:
   authentication:
     # Authentication types (supported types: PASSWORD,LDAP)
-    type: LDAP
+    type: PASSWORD
     # IF you set type `LDAP`, below config will be effective
     ldap:
       # ldap server config

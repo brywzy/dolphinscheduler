@@ -130,7 +130,16 @@ public class SubTaskProcessor extends BaseTaskProcessor {
                 subProcessInstance.getState());
         if (subProcessInstance != null && subProcessInstance.getState().isFinished()) {
             // todo: check the status and transform
-            taskInstance.setState(TaskExecutionStatus.of(subProcessInstance.getState().getCode()));
+            // 这里直接使用的是process的状态，而task没有这个状态 ，会提示 task execution status code: 5 is invalidated
+            // taskInstance.setState(TaskExecutionStatus.of(subProcessInstance.getState().getCode()));
+            // 所以这里判断一下，如果是stop操作，直接将task的状态设置为kill
+            logger.debug("SubProcessInstance {}  current state {}", subProcessInstance.getId(),subProcessInstance.getState().values());
+            if (subProcessInstance.getState().isStop()){
+                taskInstance.setState(TaskExecutionStatus.KILL);
+            }else{
+                taskInstance.setState(TaskExecutionStatus.of(subProcessInstance.getState().getCode()));
+            }
+
             taskInstance.setEndTime(new Date());
             dealFinish();
             processService.saveTaskInstance(taskInstance);

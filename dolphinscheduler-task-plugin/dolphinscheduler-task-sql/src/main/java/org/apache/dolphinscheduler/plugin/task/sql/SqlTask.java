@@ -88,7 +88,7 @@ public class SqlTask extends AbstractTask {
     /**
      * default query sql limit
      */
-    private static final int QUERY_LIMIT = 10000;
+    private static final int QUERY_LIMIT = 1000000;
 
     /**
      * default batch size
@@ -144,6 +144,7 @@ public class SqlTask extends AbstractTask {
             boolean isObjectListIn = false;
             String objectListValue = null;
             int batchSize = BATCH_SIZE;
+            int sheets = 1;
             if (localParametersMap!=null){
                 Set<String> keySet = localParametersMap.keySet();
                 for (String localKey : keySet){
@@ -152,16 +153,22 @@ public class SqlTask extends AbstractTask {
                             && sqlParameters.getSqlType() == SqlType.NON_QUERY.ordinal()){
                         if (property.getProp().equalsIgnoreCase("batchSize")) {
                             batchSize = Integer.parseInt(property.getValue());
-                        }
-                        if (property.getType() == DataType.OBJECT && paramsMap.containsKey(localKey)){
+                        }else if (property.getType() == DataType.OBJECT && paramsMap.containsKey(localKey)){
                             objectListValue = paramsMap.get(localKey).getValue();
                             isObjectListIn = true;
+                        }
+                    }
+
+                    if (property.getDirect() == Direct.IN
+                            &&  property.getProp().equalsIgnoreCase("sheets") ){
+                        sheets = Integer.parseInt(property.getValue());
+                        if (sheets>1){
+                            sqlParameters.setSegmentSeparator(";");
                         }
                     }
                 }
             }
             boolean finalIsObjectListIn = isObjectListIn;
-
             // ready to execute SQL and parameter entity Map
             List<SqlBinds> mainStatementSqlBinds = SqlSplitter.split(sqlParameters.getSql(), sqlParameters.getSegmentSeparator())
                     .stream()
@@ -188,7 +195,7 @@ public class SqlTask extends AbstractTask {
             List<String> createFuncs = createFuncs(sqlTaskExecutionContext.getUdfFuncParametersList(), logger);
 
             // execute sql task
-            executeFuncAndSql(mainStatementSqlBinds, preStatementSqlBinds, postStatementSqlBinds, createFuncs, finalIsObjectListIn,objectListValue, batchSize);
+            executeFuncAndSql(mainStatementSqlBinds, preStatementSqlBinds, postStatementSqlBinds, createFuncs, finalIsObjectListIn,objectListValue, batchSize,sheets);
 
             setExitStatusCode(TaskConstants.EXIT_CODE_SUCCESS);
 
@@ -237,7 +244,8 @@ public class SqlTask extends AbstractTask {
                                   List<String> createFuncs,
                                   boolean finalIsObjectListIn,
                                   String objectListValue,
-                                    Integer batchSize) throws Exception {
+                                  Integer batchSize,
+                                  Integer sheets) throws Exception {
         Connection connection = null;
         try {
             connection = DataSourceClientProvider.getInstance().getConnection(DbType.valueOf(sqlParameters.getType()), baseConnectionParam);
@@ -255,8 +263,9 @@ public class SqlTask extends AbstractTask {
             //result is object type
             boolean outListObj = false;
             Property property = null;
-            if (!CollectionUtils.isEmpty(sqlParameters.getLocalParams()) && sqlParameters.getLocalParams().size()==1
-                    && (property = sqlParameters.getLocalParams().get(0)).getDirect() == Direct.OUT
+            List<Property> localParams = sqlParameters.getLocalParams();
+            if (!CollectionUtils.isEmpty(localParams) && localParams.size()==1
+                    && (property = localParams.get(0)).getDirect() == Direct.OUT
                     && property.getType() == DataType.OBJECT){
                 outListObj = true;
             }
@@ -266,11 +275,35 @@ public class SqlTask extends AbstractTask {
             ArrayNode arrayNodeResult = null;
             // decide whether to executeQuery or executeUpdate based on sqlType
             if (sqlParameters.getSqlType() == SqlType.QUERY.ordinal()) {
-                // query statements need to be convert to JsonArray and inserted into Alert to send
-                if (outListObj) {
-                    arrayNodeResult = executeQuery(connection, mainStatementsBinds.get(0));
+                if (Boolean.TRUE.equals(sqlParameters.getSendEmail())) {
+                    //if include send mail
+                    if (sheets>1){
+                        List<HashMap<String,String>> resultList = new ArrayList<>();
+                        List<String> datas = executeMultiQuery(connection, mainStatementsBinds);
+                        for (int i=1;i<localParams.size()&&i<(sheets+1);i++){
+                            Property sheetProperty = localParams.get(i);
+                            if (sheetProperty.getDirect().equals(Direct.IN) && sheetProperty.getProp().startsWith("sheet")){
+                                HashMap<String,String> sheet = new HashMap<>();
+                                sheet.put("data",datas.get(i-1));
+                                sheet.put("name",sheetProperty.getValue());
+                                resultList.add(sheet);
+                            }
+                        }
+
+                        result = JSONUtils.toJsonString(resultList);
+                    }else{
+                        result = executeQuery(connection, mainStatementsBinds.get(0), "main");
+                    }
+                    sendAttachment(sqlParameters.getGroupId(), StringUtils.isNotEmpty(sqlParameters.getTitle())
+                            ? sqlParameters.getTitle()
+                            : taskExecutionContext.getTaskName() + " query result sets", result);
                 }else{
-                    result = executeQuery(connection, mainStatementsBinds.get(0), "main");
+                    // query statements need to be convert to JsonArray and inserted into Alert to send
+                    if (outListObj) {
+                        arrayNodeResult = executeQuery(connection, mainStatementsBinds.get(0));
+                    }else{
+                        result = executeQuery(connection, mainStatementsBinds.get(0), "main");
+                    }
                 }
             } else if (sqlParameters.getSqlType() == SqlType.NON_QUERY.ordinal()) {
                 // non query statement
@@ -349,15 +382,14 @@ public class SqlTask extends AbstractTask {
             }
         }
         String result = JSONUtils.toJsonString(resultJSONArray);
-        if (Boolean.TRUE.equals(sqlParameters.getSendEmail())) {
-            sendAttachment(sqlParameters.getGroupId(), StringUtils.isNotEmpty(sqlParameters.getTitle())
-                    ? sqlParameters.getTitle()
-                    : taskExecutionContext.getTaskName() + " query result sets", result);
-        }
+//        if (Boolean.TRUE.equals(sqlParameters.getSendEmail())) {
+//            sendAttachment(sqlParameters.getGroupId(), StringUtils.isNotEmpty(sqlParameters.getTitle())
+//                    ? sqlParameters.getTitle()
+//                    : taskExecutionContext.getTaskName() + " query result sets", result);
+//        }
         logger.debug("execute sql result : {}", result);
         return result;
     }
-
 
     /**
      * result process
@@ -386,11 +418,11 @@ public class SqlTask extends AbstractTask {
                 logger.info("row {} : {}", i + 1, row);
             }
         }
-        if (Boolean.TRUE.equals(sqlParameters.getSendEmail())) {
-            sendAttachment(sqlParameters.getGroupId(), StringUtils.isNotEmpty(sqlParameters.getTitle())
-                    ? sqlParameters.getTitle()
-                    : taskExecutionContext.getTaskName() + " query result sets", JSONUtils.toJsonString(resultJSONArray));
-        }
+//        if (Boolean.TRUE.equals(sqlParameters.getSendEmail())) {
+//            sendAttachment(sqlParameters.getGroupId(), StringUtils.isNotEmpty(sqlParameters.getTitle())
+//                    ? sqlParameters.getTitle()
+//                    : taskExecutionContext.getTaskName() + " query result sets", JSONUtils.toJsonString(resultJSONArray));
+//        }
         return resultJSONArray;
     }
 
@@ -416,6 +448,17 @@ public class SqlTask extends AbstractTask {
         }
     }
 
+    private List<String> executeMultiQuery(Connection connection, List<SqlBinds> sqlBinds) throws Exception {
+        List<String> resultData = new ArrayList<>();
+        for (SqlBinds sqlBind : sqlBinds) {
+            try (PreparedStatement statement = prepareStatementAndBind(connection, sqlBind)) {
+                ResultSet resultSet = statement.executeQuery();
+                resultData.add(resultProcess(resultSet));
+            }
+        }
+        return resultData;
+    }
+
     private ArrayNode executeQuery(Connection connection, SqlBinds sqlBinds) throws Exception {
         try (PreparedStatement statement = prepareStatementAndBind(connection, sqlBinds)) {
             ResultSet resultSet = statement.executeQuery();
@@ -429,7 +472,8 @@ public class SqlTask extends AbstractTask {
 //            logger.info("--multi sql debug :"+ sqlBind.getSql() + "\t param : "+sqlBind.getParamsMap());
             try (PreparedStatement statement = prepareStatementAndBind(connection, sqlBind)) {
                 result = statement.executeUpdate();
-                logger.info("{} statement execute update result: {}, for sql: {}", handlerType, result, sqlBind.getSql());
+//                logger.info("{} statement execute update result: {}, for sql: {}", handlerType, result, sqlBind.getSql());
+                logger.info("{} statement execute update result: {}", handlerType, result);
             }
         }
         return String.valueOf(result);
@@ -554,7 +598,7 @@ public class SqlTask extends AbstractTask {
      */
     private void printReplacedSql(String content, String formatSql, String rgex, Map<Integer, Property> sqlParamsMap) {
         //parameter print style
-        logger.info("after replace sql , preparing : {}", formatSql);
+        logger.debug("after replace sql , preparing : {}", formatSql);
         StringBuilder logPrint = new StringBuilder("replaced sql , parameters:");
         if (sqlParamsMap == null) {
             logger.info("printReplacedSql: sqlParamsMap is null.");

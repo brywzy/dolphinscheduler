@@ -1861,10 +1861,13 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                                 processInstance.getId(),
                                 task.getTaskCode());
                     }
-                    completeTaskMap.put(task.getTaskCode(), task.getId());
-                    taskInstanceMap.put(task.getId(), task);
-                    errorTaskMap.put(task.getTaskCode(), task.getId());
-                    activeTaskProcessorMaps.remove(task.getTaskCode());
+                    if (task.getId()!=null) {
+                        completeTaskMap.put(task.getTaskCode(), task.getId());
+                        taskInstanceMap.put(task.getId(), task);
+                        errorTaskMap.put(task.getTaskCode(), task.getId());
+                    }
+                        activeTaskProcessorMaps.remove(task.getTaskCode());
+
                     logger.error("Task submitted failed, workflowInstanceId: {}, taskInstanceId: {}, taskCode: {}",
                             task.getProcessInstanceId(),
                             task.getId(),

@@ -26,10 +26,12 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class ExcelUtils {
-    private static final int XLSX_WINDOW_ROW = 10000;
+    private static final int XLSX_WINDOW_ROW = 1000000;
     private static final Logger logger = LoggerFactory.getLogger(ExcelUtils.class);
 
     private ExcelUtils() {
@@ -67,7 +69,105 @@ public final class ExcelUtils {
             throw new AlertEmailException("itemsList is null");
         }
 
-        LinkedHashMap<String, Object> headerMap = itemsList.get(0);
+        LinkedHashMap linkedHashMap = itemsList.get(0);
+        if (linkedHashMap.containsKey("data")){
+            multiSheet(itemsList, title , xlsFilePath);
+        }else{
+            original(itemsList , linkedHashMap, title , xlsFilePath);
+        }
+    }
+
+    private static int defaultMinWidth = 2800;
+    private static void multiSheet(List<LinkedHashMap> multiData, String title, String xlsFilePath){
+
+        SXSSFWorkbook wb = new SXSSFWorkbook(XLSX_WINDOW_ROW);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(String.format("%s/%s.xlsx", xlsFilePath, title));
+            for (LinkedHashMap linkedHashMap : multiData){
+
+                String data = linkedHashMap.get("data").toString();
+                String sheetName = linkedHashMap.get("name").toString();
+                List<LinkedHashMap> itemsList = JSONUtils.toList(data, LinkedHashMap.class);
+                List<String> headerList = new ArrayList<>();
+                if (itemsList.isEmpty()){
+                    wb.createSheet(sheetName);
+                    continue;
+                }
+
+                LinkedHashMap<String, Object> headerMap = itemsList.get(0);
+                for (Map.Entry<String, Object> en : headerMap.entrySet()) {
+                    headerList.add(en.getKey());
+                }
+                Sheet sheet = wb.createSheet(sheetName);
+                ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+
+                Row row = sheet.createRow(0);
+                //set the height of the first line
+//                row.setHeight((short) 500);
+
+                //set Horizontal right
+                CellStyle cellStyle = wb.createCellStyle();
+                cellStyle.setAlignment(HorizontalAlignment.LEFT);
+                //setting excel headers
+                for (int i = 0; i < headerList.size(); i++) {
+                    String header = headerList.get(i);
+                    Cell cell = row.createCell(i);
+                    cell.setCellStyle(cellStyle);
+                    cell.setCellValue(header);
+//                    sheet.setColumnWidth(i, header.length() * 256);
+//                    sheet.autoSizeColumn(i, true);
+                    sheet.autoSizeColumn(i,true);
+                    if (sheet.getColumnWidth(i)<defaultMinWidth){
+                        sheet.setColumnWidth(i, defaultMinWidth);
+                    }
+
+                }
+
+                //setting excel body
+                int rowIndex = 1;
+                for (LinkedHashMap<String, Object> itemsMap : itemsList) {
+                    Object[] values = itemsMap.values().toArray();
+                    row = sheet.createRow(rowIndex);
+                    //setting excel body height
+//                    row.setHeight((short) 500);
+                    rowIndex++;
+                    for (int j = 0; j < values.length; j++) {
+                        Cell cell1 = row.createCell(j);
+                        cell1.setCellStyle(cellStyle);
+                        if (values[j] == null){
+                            cell1.setCellValue("");
+                        } else if (values[j] instanceof Number) {
+                            cell1.setCellValue(Double.parseDouble(String.valueOf(values[j])));
+                        } else {
+                            cell1.setCellValue(String.valueOf(values[j]));
+                        }
+                    }
+                }
+
+
+//                for (int i = 0; i < headerList.size(); i++) {
+////                    sheet.setColumnWidth(i, headerList.get(i).length() * 800);
+//                    sheet.autoSizeColumn(i,true);
+//                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            //setting file output
+            try {
+                wb.write(fos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            wb.dispose();
+        }
+
+    }
+
+
+    private static void original(List<LinkedHashMap> itemsList, LinkedHashMap<String,Object> headerMap, String title, String xlsFilePath){
 
         List<String> headerList = new ArrayList<>();
 
@@ -79,19 +179,25 @@ public final class ExcelUtils {
             // declare a workbook
             // generate a table
             Sheet sheet = wb.createSheet();
+            ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+
             Row row = sheet.createRow(0);
             //set the height of the first line
-            row.setHeight((short) 500);
+//            row.setHeight((short) 500);
 
             //set Horizontal right
             CellStyle cellStyle = wb.createCellStyle();
-            cellStyle.setAlignment(HorizontalAlignment.RIGHT);
-
+            cellStyle.setAlignment(HorizontalAlignment.LEFT);
             //setting excel headers
             for (int i = 0; i < headerList.size(); i++) {
+                String header = headerList.get(i);
                 Cell cell = row.createCell(i);
                 cell.setCellStyle(cellStyle);
-                cell.setCellValue(headerList.get(i));
+                cell.setCellValue(header);
+                sheet.autoSizeColumn(i,true);
+                if (sheet.getColumnWidth(i)< defaultMinWidth){
+                    sheet.setColumnWidth(i, defaultMinWidth);
+                }
             }
 
             //setting excel body
@@ -100,12 +206,14 @@ public final class ExcelUtils {
                 Object[] values = itemsMap.values().toArray();
                 row = sheet.createRow(rowIndex);
                 //setting excel body height
-                row.setHeight((short) 500);
+//                row.setHeight((short) 500);
                 rowIndex++;
                 for (int j = 0; j < values.length; j++) {
                     Cell cell1 = row.createCell(j);
                     cell1.setCellStyle(cellStyle);
-                    if (values[j] instanceof Number) {
+                    if (values[j] == null){
+                        cell1.setCellValue("");
+                    } else if (values[j] instanceof Number) {
                         cell1.setCellValue(Double.parseDouble(String.valueOf(values[j])));
                     } else {
                         cell1.setCellValue(String.valueOf(values[j]));
@@ -113,9 +221,11 @@ public final class ExcelUtils {
                 }
             }
 
-            for (int i = 0; i < headerList.size(); i++) {
-                sheet.setColumnWidth(i, headerList.get(i).length() * 800);
-            }
+//            for (int i = 0; i < headerList.size(); i++) {
+////                sheet.setColumnWidth(i, headerList.get(i).length() * 100);
+////                ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+//
+//            }
 
             //setting file output
             wb.write(fos);

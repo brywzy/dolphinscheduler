@@ -72,7 +72,7 @@ spring:
 registry:
   type: zookeeper
   zookeeper:
-    namespace: dolphinscheduler
+    namespace: dolphinscheduler_dev
     connect-string: cfhy-test-bigdata-13:2181
     retry-policy:
       base-sleep-time: 60ms
