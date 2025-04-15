@@ -310,8 +310,24 @@ public class SqlParameters extends AbstractParameters {
         }
         // if sql return more than one line
         if (result.size() >= 1) {
-            property.setValue(JSONUtils.toJsonString(result));
-            varPool.add(property);
+            if (varPool.isEmpty()){
+                property.setValue(JSONUtils.toJsonString(result));
+                varPool.add(property);
+                return;
+            }
+            boolean exists = false;
+            for (Property var : varPool){
+                if (var.getProp().equals(property.getProp())){
+                    var.setValue(JSONUtils.toJsonString(result));
+                    exists = true;
+                }
+            }
+            if (!exists){
+                property.setValue(JSONUtils.toJsonString(result));
+                varPool.add(property);
+            }
+//            property.setValue(JSONUtils.toJsonString(result));
+//            varPool.add(property);
 //        } else {
 //            // result only one line
 //            property.setValue(JSONUtils.toJsonString(result.get(0)));
