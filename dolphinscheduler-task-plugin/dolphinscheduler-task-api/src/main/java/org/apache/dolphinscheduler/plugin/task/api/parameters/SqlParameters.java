@@ -303,36 +303,40 @@ public class SqlParameters extends AbstractParameters {
 
 
     public void dealOutObjectParam(ArrayNode result,Property property) {
-        if (result==null || result.size()==0) {
-            property.setValue("");
+
+        // if sql return more than one line
+        if (result!=null && result.size() >= 1 && varPool.isEmpty()) {
+            property.setValue(JSONUtils.toJsonString(result));
             varPool.add(property);
             return;
         }
-        // if sql return more than one line
-        if (result.size() >= 1) {
-            if (varPool.isEmpty()){
-                property.setValue(JSONUtils.toJsonString(result));
-                varPool.add(property);
-                return;
-            }
-            boolean exists = false;
-            for (Property var : varPool){
-                if (var.getProp().equals(property.getProp())){
+
+        boolean exists = false;
+        for (Property var : varPool){
+            if (var.getProp().equals(property.getProp())){
+                if (result==null || result.size() == 0) {
+                    var.setValue("");
+                }else {
                     var.setValue(JSONUtils.toJsonString(result));
-                    exists = true;
                 }
+                exists = true;
             }
-            if (!exists){
+        }
+
+        if (!exists){
+            if (result==null || result.size() == 0) {
+                property.setValue("");
+            }else{
                 property.setValue(JSONUtils.toJsonString(result));
-                varPool.add(property);
             }
+            varPool.add(property);
+        }
 //            property.setValue(JSONUtils.toJsonString(result));
 //            varPool.add(property);
 //        } else {
 //            // result only one line
 //            property.setValue(JSONUtils.toJsonString(result.get(0)));
 //            varPool.add(property);
-        }
 
     }
 
