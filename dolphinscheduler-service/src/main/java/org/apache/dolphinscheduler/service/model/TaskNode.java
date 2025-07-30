@@ -190,6 +190,11 @@ public class TaskNode {
     private Integer memoryMax;
 
     /**
+     * force continue:0 false, 1 true
+     */
+    private Integer forceContinue;
+
+    /**
      * task execute type
      */
     private TaskExecuteType taskExecuteType;
@@ -478,6 +483,7 @@ public class TaskNode {
                 + ", environmentCode=" + environmentCode
                 + ", timeout='" + timeout + '\''
                 + ", delayTime=" + delayTime + '\''
+                + ", forceContinue=" + forceContinue + '\''
                 + ", taskExecuteType=" + taskExecuteType
                 + '}';
     }
@@ -544,5 +550,13 @@ public class TaskNode {
 
     public void setTaskExecuteType(TaskExecuteType taskExecuteType) {
         this.taskExecuteType = taskExecuteType;
+    }
+
+    public Integer getForceContinue() {
+        return forceContinue;
+    }
+
+    public void setForceContinue(Integer forceContinue) {
+        this.forceContinue = forceContinue;
     }
 }

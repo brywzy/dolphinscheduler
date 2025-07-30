@@ -347,6 +347,13 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
                             taskDefinitionLog.getName(), taskDefinitionLog);
                     throw new ServiceException(Status.PROCESS_NODE_S_PARAMETER_INVALID, taskDefinitionLog.getName());
                 }
+                //todo 此处应该是前端传递该参数
+                Map<String, String> taskParamMap = taskDefinitionLog.getTaskParamMap();
+                if (taskParamMap!=null && taskParamMap.containsKey("force_continue")){
+                    taskDefinitionLog.setForceContinue(Integer.parseInt(taskParamMap.get("force_continue")));
+                }else{
+                    taskDefinitionLog.setForceContinue(0);
+                }
             }
             return taskDefinitionLogs;
         } catch (ServiceException ex) {

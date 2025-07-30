@@ -80,6 +80,9 @@ public class DataSourceClientProvider {
 
     public Connection getConnection(DbType dbType, ConnectionParam connectionParam) throws ExecutionException {
         BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
+        //todo 宇宙无敌超级第一坑，如果只修改了sql属性参数，就要等缓存过期
+//        uninqueID = dbType.getDescp(), baseConnectionParam.getUser(),
+//                PasswordUtils.encodePassword(baseConnectionParam.getPassword()), baseConnectionParam.getJdbcUrl()
         String datasourceUniqueId = DataSourceUtils.getDatasourceUniqueId(baseConnectionParam, dbType);
         logger.info("Get connection from datasource {}", datasourceUniqueId);
 //
@@ -102,10 +105,11 @@ public class DataSourceClientProvider {
             }
             DataSourceClient createDataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
             uniqueId2dataSourceClientCache.put(datasourceUniqueId,createDataSourceClient);
-            logger.info("DataSourceClientCache create new key:{},value:{},conn:{}", datasourceUniqueId,createDataSourceClient,createDataSourceClient.getConnection());
+            logger.info("DataSourceClientCache create new key:{},value:{}", datasourceUniqueId,createDataSourceClient);
             return createDataSourceClient;
         });
         try {
+            baseConnectionParam.setValidationQuery("select 'x' ");
             dataSourceClient.checkClient();
         }catch (Exception e){
             uniqueId2dataSourceClientCache.invalidate(datasourceUniqueId);
@@ -117,7 +121,7 @@ public class DataSourceClientProvider {
             }
             dataSourceClient = dataSourceChannel.createDataSourceClient(baseConnectionParam, dbType);
             uniqueId2dataSourceClientCache.put(datasourceUniqueId,dataSourceClient);
-            logger.info("check datasource client exception, overwrite datasource client, create new key:{},value:{},conn:{}", datasourceUniqueId,dataSourceClient,dataSourceClient.getConnection());
+            logger.info("check datasource client exception, overwrite datasource client, create new key:{},value:{}", datasourceUniqueId,dataSourceClient);
         }
         Connection connection = dataSourceClient.getConnection();
 

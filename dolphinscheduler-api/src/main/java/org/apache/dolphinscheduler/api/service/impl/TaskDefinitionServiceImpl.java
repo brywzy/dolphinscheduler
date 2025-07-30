@@ -525,6 +525,7 @@ public class TaskDefinitionServiceImpl extends BaseServiceImpl implements TaskDe
         taskDefinitionToUpdate.setOperateTime(now);
         taskDefinitionToUpdate.setCreateTime(now);
         taskDefinitionToUpdate.setId(null);
+        taskDefinitionToUpdate.setForceContinue(taskDefinition.getForceContinue());
         int insert = taskDefinitionLogMapper.insert(taskDefinitionToUpdate);
         if ((update & insert) != 1) {
             logger.error("Update task definition or definitionLog error, projectCode:{}, taskDefinitionCode:{}.",

@@ -156,6 +156,32 @@ public class ProcessAlertManager {
         return res;
     }
 
+
+    public String getContentTaskInstance(ProcessInstance processInstance,
+                                            TaskInstance task,
+                                            ProjectUser projectUser) {
+
+        List<ProcessAlertContent> failedTaskList = new ArrayList<>();
+        ProcessAlertContent processAlertContent = ProcessAlertContent.builder()
+                .projectCode(projectUser.getProjectCode())
+                .projectName(projectUser.getProjectName())
+                .owner(projectUser.getUserName())
+                .processId(processInstance.getId())
+                .processDefinitionCode(processInstance.getProcessDefinitionCode())
+                .processName(processInstance.getName())
+                .taskCode(task.getTaskCode())
+                .taskName(task.getName())
+                .taskType(task.getTaskType())
+                .taskState(task.getState())
+                .taskStartTime(task.getStartTime())
+                .taskEndTime(task.getEndTime())
+                .taskHost(task.getHost())
+                .logPath(task.getLogPath())
+                .build();
+        failedTaskList.add(processAlertContent);
+        return JSONUtils.toJsonString(failedTaskList);
+    }
+
     /**
      * getting worker fault tolerant content
      *
@@ -237,6 +263,33 @@ public class ProcessAlertManager {
         alert.setProcessInstanceId(processInstance.getId());
         alert.setAlertType(processInstance.getState().isSuccess() ? AlertType.PROCESS_INSTANCE_SUCCESS
                 : AlertType.PROCESS_INSTANCE_FAILURE);
+        alertDao.addAlert(alert);
+        logger.info("add alert to db , alert: {}", alert);
+    }
+
+    /**
+     * send process instance alert
+     *
+     * @param processInstance process instance
+     * @param taskInstance task instance
+     */
+    public void sendAlertTaskInstance(ProcessInstance processInstance,
+                                      TaskInstance taskInstance,
+                                         ProjectUser projectUser) {
+        if (WarningType.FAILURE!=processInstance.getWarningType()) {
+            return;
+        }
+        Alert alert = new Alert();
+        alert.setTitle("task exec failed" );
+        alert.setWarningType( WarningType.FAILURE);
+        String content = getContentTaskInstance(processInstance, taskInstance, projectUser);
+        alert.setContent(content);
+        alert.setAlertGroupId(processInstance.getWarningGroupId());
+        alert.setCreateTime(new Date());
+        alert.setProjectCode(projectUser.getProjectCode());
+        alert.setProcessDefinitionCode(processInstance.getProcessDefinitionCode());
+        alert.setProcessInstanceId(processInstance.getId());
+        alert.setAlertType(AlertType.TASK_FAILURE);
         alertDao.addAlert(alert);
         logger.info("add alert to db , alert: {}", alert);
     }

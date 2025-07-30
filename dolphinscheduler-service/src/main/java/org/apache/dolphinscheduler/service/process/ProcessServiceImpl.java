@@ -2554,6 +2554,13 @@ public class ProcessServiceImpl implements ProcessService {
                     .collect(Collectors.toMap(TaskDefinition::getCode, Function.identity()));
             for (TaskDefinitionLog taskDefinitionToUpdate : updateTaskDefinitionLogs) {
                 TaskDefinition task = taskDefinitionMap.get(taskDefinitionToUpdate.getCode());
+                //todo 此处应该是前端传递该参数
+                Map<String, String> taskParamMap = task.getTaskParamMap();
+                if (taskParamMap!=null && taskParamMap.containsKey("force_continue")){
+                    task.setForceContinue(Integer.parseInt(taskParamMap.get("force_continue")));
+                }else{
+                    task.setForceContinue(0);
+                }
                 if (task == null) {
                     newTaskDefinitionLogs.add(taskDefinitionToUpdate);
                 } else {
@@ -2853,6 +2860,7 @@ public class ProcessServiceImpl implements ProcessService {
                 taskNode.setCpuQuota(taskDefinitionLog.getCpuQuota());
                 taskNode.setMemoryMax(taskDefinitionLog.getMemoryMax());
                 taskNode.setTaskExecuteType(taskDefinitionLog.getTaskExecuteType());
+                taskNode.setForceContinue(taskDefinitionLog.getForceContinue());
                 taskNodeList.add(taskNode);
             }
         }

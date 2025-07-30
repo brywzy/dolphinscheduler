@@ -72,6 +72,7 @@ public class TaskDefinitionLog extends TaskDefinition {
         this.setModifyBy(taskDefinition.getModifyBy());
         this.setCpuQuota(taskDefinition.getCpuQuota());
         this.setMemoryMax(taskDefinition.getMemoryMax());
+        this.setForceContinue(taskDefinition.getForceContinue());
     }
 
     public int getOperator() {

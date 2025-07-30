@@ -93,7 +93,9 @@ public abstract class AbstractDataSourceProcessor implements DataSourceProcessor
     @Override
     public String getDatasourceUniqueId(ConnectionParam connectionParam, DbType dbType) {
         BaseConnectionParam baseConnectionParam = (BaseConnectionParam) connectionParam;
-        return MessageFormat.format("{0}@{1}@{2}@{3}", dbType.getDescp(), baseConnectionParam.getUser(),
-                PasswordUtils.encodePassword(baseConnectionParam.getPassword()), baseConnectionParam.getJdbcUrl());
+        // todo 参数修改了这里也要生成一下新的 uniqueID
+        return MessageFormat.format("{0}@{1}@{2}@{3}@{4}", dbType.getDescp(), baseConnectionParam.getUser(),
+                PasswordUtils.encodePassword(baseConnectionParam.getPassword()), baseConnectionParam.getJdbcUrl(),
+                baseConnectionParam.getOther());
     }
 }

@@ -21,6 +21,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.constants.DataSourceConstants;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
+import org.apache.dolphinscheduler.plugin.datasource.api.datasource.BaseHDFSConnectionParam;
 import org.apache.dolphinscheduler.plugin.datasource.api.utils.DataSourceUtils;
 import org.apache.dolphinscheduler.plugin.datasource.api.utils.PasswordUtils;
 import org.apache.dolphinscheduler.spi.datasource.BaseConnectionParam;
@@ -29,11 +30,13 @@ import org.apache.dolphinscheduler.spi.enums.DbType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Driver;
+import java.util.LinkedHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Jdbc Data Source Provider
@@ -113,7 +116,7 @@ public class JDBCDataSourceProvider {
         druidDataSource.setPassword(PasswordUtils.decodePassword(properties.getPassword()));
 
         Boolean isOneSession = PropertyUtils.getBoolean(Constants.SUPPORT_HIVE_ONE_SESSION, false);
-        druidDataSource.setInitialSize(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.initialSize", 2));
+        druidDataSource.setInitialSize(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.initialSize", 1));
         druidDataSource.setMinIdle(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.minIdle", 5));
         druidDataSource.setMaxActive(isOneSession ? 1 : PropertyUtils.getInt("spring.datasource.hive.maxActive", 50));
         druidDataSource.setMaxWait(PropertyUtils.getLong("spring.datasource.hive.maxWait", 60 * 1000));
@@ -151,5 +154,4 @@ public class JDBCDataSourceProvider {
             logger.warn("The specified driver not suitable.");
         }
     }
-
 }

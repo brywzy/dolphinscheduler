@@ -64,5 +64,6 @@ public class NettyClientConfig {
      */
     @Builder.Default
     private int connectTimeoutMillis = 3000;
+//    private int connectTimeoutMillis = 30000;
 
 }

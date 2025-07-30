@@ -530,6 +530,13 @@ public class ProcessInstanceServiceImpl extends BaseServiceImpl implements Proce
                 putMsg(result, Status.PROCESS_NODE_S_PARAMETER_INVALID, taskDefinitionLog.getName());
                 return result;
             }
+            //todo 此处应该是前端传递该参数
+            Map<String, String> taskParamMap = taskDefinitionLog.getTaskParamMap();
+            if (taskParamMap!=null && taskParamMap.containsKey("force_continue")){
+                taskDefinitionLog.setForceContinue(Integer.parseInt(taskParamMap.get("force_continue")));
+            }else{
+                taskDefinitionLog.setForceContinue(0);
+            }
         }
         int saveTaskResult = processService.saveTaskDefine(loginUser, projectCode, taskDefinitionLogs, syncDefine);
         if (saveTaskResult == Constants.DEFINITION_FAILURE) {

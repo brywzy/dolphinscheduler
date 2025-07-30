@@ -234,14 +234,14 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
      * @param stateWheelExecuteThread stateWheelExecuteThread
      */
     public WorkflowExecuteRunnable(
-                                   @NonNull ProcessInstance processInstance,
-                                   @NonNull ProcessService processService,
-                                   @NonNull ProcessInstanceDao processInstanceDao,
-                                   @NonNull NettyExecutorManager nettyExecutorManager,
-                                   @NonNull ProcessAlertManager processAlertManager,
-                                   @NonNull MasterConfig masterConfig,
-                                   @NonNull StateWheelExecuteThread stateWheelExecuteThread,
-                                   @NonNull CuringParamsService curingParamsService) {
+            @NonNull ProcessInstance processInstance,
+            @NonNull ProcessService processService,
+            @NonNull ProcessInstanceDao processInstanceDao,
+            @NonNull NettyExecutorManager nettyExecutorManager,
+            @NonNull ProcessAlertManager processAlertManager,
+            @NonNull MasterConfig masterConfig,
+            @NonNull StateWheelExecuteThread stateWheelExecuteThread,
+            @NonNull CuringParamsService curingParamsService) {
         this.processService = processService;
         this.processInstanceDao = processInstanceDao;
         this.processInstance = processInstance;
@@ -414,6 +414,8 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                 if (processInstance.getFailureStrategy() == FailureStrategy.CONTINUE && DagHelper.haveAllNodeAfterNode(
                         Long.toString(taskInstance.getTaskCode()),
                         dag)) {
+                    ProjectUser projectUser = processService.queryProjectWithUserByProcessInstanceId(processInstance.getId());
+                    processAlertManager.sendAlertTaskInstance(processInstance, taskInstance, projectUser);
                     submitPostNode(Long.toString(taskInstance.getTaskCode()));
                 } else {
                     errorTaskMap.put(taskInstance.getTaskCode(), taskInstance.getId());
@@ -1101,7 +1103,6 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
         // todo relative funtion: TaskInstance.retryTaskIntervalOverTime
         newTaskInstance.setState(taskInstance.getState());
         newTaskInstance.setEndTime(taskInstance.getEndTime());
-
         if (taskInstance.getState() == TaskExecutionStatus.NEED_FAULT_TOLERANCE) {
             newTaskInstance.setAppLink(taskInstance.getAppLink());
         }
@@ -1188,7 +1189,7 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
         } else {
             taskInstance.setTaskInstancePriority(taskNode.getTaskInstancePriority());
         }
-
+        taskInstance.setForceContinue(taskNode.getForceContinue());
         String processWorkerGroup = processInstance.getWorkerGroup();
         processWorkerGroup = StringUtils.isBlank(processWorkerGroup) ? DEFAULT_WORKER_GROUP : processWorkerGroup;
         String taskWorkerGroup =
@@ -1452,8 +1453,8 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                     DagHelper.parseConditionTask(dependNodeName, skipTaskNodeMap, dag, getCompleteTaskInstanceMap());
             if (!nextTaskList.contains(nextNodeName)) {
                 logger.info("DependTask is a condition task, and its next condition branch does not hava current task, " +
-                                "dependTaskCode: {}, currentTaskCode: {}", dependNodeName, nextNodeName
-                        );
+                        "dependTaskCode: {}, currentTaskCode: {}", dependNodeName, nextNodeName
+                );
                 return false;
             }
         } else {
@@ -1849,7 +1850,12 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                 getPreVarPool(task, preTask);
             }
             DependResult dependResult = getDependResultForTask(task);
-            if (DependResult.SUCCESS == dependResult) {
+            Integer forceContinue = task.getForceContinue();
+            // 如果前面的任务失败了，且当前任务忽略前面异常，需要在依然错误任务中添加一个
+            if (DependResult.SUCCESS != dependResult){
+                dependFailedTaskSet.add(task.getTaskCode());
+            }
+            if ((forceContinue!=null && forceContinue==1) || DependResult.SUCCESS == dependResult) {
                 logger.info("The dependResult of task {} is success, so ready to submit to execute", task.getName());
                 Optional<TaskInstance> taskInstanceOptional = submitTaskExec(task);
                 if (!taskInstanceOptional.isPresent()) {
@@ -1866,7 +1872,7 @@ public class WorkflowExecuteRunnable implements Callable<WorkflowSubmitStatue> {
                         taskInstanceMap.put(task.getId(), task);
                         errorTaskMap.put(task.getTaskCode(), task.getId());
                     }
-                        activeTaskProcessorMaps.remove(task.getTaskCode());
+                    activeTaskProcessorMaps.remove(task.getTaskCode());
 
                     logger.error("Task submitted failed, workflowInstanceId: {}, taskInstanceId: {}, taskCode: {}",
                             task.getProcessInstanceId(),

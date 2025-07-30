@@ -296,6 +296,11 @@ public class TaskInstance implements Serializable {
     private Integer memoryMax;
 
     /**
+     * force continue:0 false, 1 true
+     */
+    private Integer forceContinue;
+
+    /**
      * task execute type
      */
     private TaskExecuteType taskExecuteType;

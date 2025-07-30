@@ -264,7 +264,7 @@ public class SqlTask extends AbstractTask {
             boolean outListObj = false;
             Property property = null;
             List<Property> localParams = sqlParameters.getLocalParams();
-            if (!CollectionUtils.isEmpty(localParams) && localParams.size()==1
+            if (!CollectionUtils.isEmpty(localParams)
                     && (property = localParams.get(0)).getDirect() == Direct.OUT
                     && property.getType() == DataType.OBJECT){
                 outListObj = true;
